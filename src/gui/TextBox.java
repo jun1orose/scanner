@@ -2,9 +2,9 @@ package gui;
 
 import javax.swing.*;
 
-class TextFrame extends JComponent {
+class TextBox extends JComponent {
 
-    TextFrame() {
+    TextBox() {
         super();
         this.setBorder(BorderFactory.createRaisedSoftBevelBorder());
         this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
