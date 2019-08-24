@@ -17,7 +17,11 @@ class ButtonsPanel extends JPanel {
         try {
             this.add(createUpButton());
             this.add(createDownButton());
-            this.add(new JSeparator(SwingConstants.VERTICAL));
+
+            JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
+            separator.setPreferredSize(new Dimension(2, 20));
+
+            this.add(separator);
             this.add(createSelectAllButton());
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,7 +48,7 @@ class ButtonsPanel extends JPanel {
         return downBtn;
     }
 
-    private JButton createSelectAllButton() throws  IOException {
+    private JButton createSelectAllButton() throws IOException {
         Image allImg = ImageIO.read(new File("resources/all.png"))
                 .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
 
@@ -53,5 +57,4 @@ class ButtonsPanel extends JPanel {
 
         return selectAllBtn;
     }
-
 }
