@@ -54,6 +54,7 @@ class ButtonsPanel extends JPanel {
 
         JButton selectAllBtn = new JButton(new ImageIcon(allImg));
         selectAllBtn.setEnabled(false);
+        selectAllBtn.setToolTipText("Select all");
 
         return selectAllBtn;
     }
