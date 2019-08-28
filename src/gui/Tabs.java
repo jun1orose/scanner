@@ -3,11 +3,11 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 
-class ContentBox extends JComponent {
+class Tabs extends JComponent {
 
     private final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.LEFT);
 
-    ContentBox() {
+    Tabs() {
         super();
         this.setBorder(BorderFactory.createRaisedSoftBevelBorder());
         this.setLayout(new BorderLayout());

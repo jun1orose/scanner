@@ -11,23 +11,23 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 
-class Tab extends JPanel {
+class TabHeader extends JPanel {
 
     private String tabName;
     private JTabbedPane parentPane;
 
     private static final int SIZE = 20;
-    private static final Font FONT = new Font("Times New Roman", Font.PLAIN, Tab.SIZE * 2 / 3);
+    private static final Font FONT = new Font("Times New Roman", Font.PLAIN, TabHeader.SIZE * 2 / 3);
 
 
-    Tab(String tabName, JTabbedPane parentPane) {
+    TabHeader(String tabName, JTabbedPane parentPane) {
         super(new BorderLayout());
 
         this.tabName = tabName;
         this.parentPane = parentPane;
 
         setOpaque(false);
-        setPreferredSize(new Dimension(Tab.SIZE * 6, Tab.SIZE));
+        setPreferredSize(new Dimension(TabHeader.SIZE * 6, TabHeader.SIZE));
 
         addTitle();
         addCloseButton();
@@ -37,15 +37,15 @@ class Tab extends JPanel {
 
         JLabel label = new JLabel(this.tabName);
 
-        label.setFont(Tab.FONT);
-        label.setBorder(new EmptyBorder(0, 0, 0, Tab.SIZE));
-        label.setPreferredSize(new Dimension(Tab.SIZE * 5, Tab.SIZE));
+        label.setFont(TabHeader.FONT);
+        label.setBorder(new EmptyBorder(0, 0, 0, TabHeader.SIZE));
+        label.setPreferredSize(new Dimension(TabHeader.SIZE * 5, TabHeader.SIZE));
         label.setToolTipText(this.tabName);
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                Tab.this.parentPane.
-                        dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, Tab.this.parentPane));
+                TabHeader.this.parentPane.
+                        dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, TabHeader.this.parentPane));
             }
         });
 
@@ -55,11 +55,11 @@ class Tab extends JPanel {
     private void addCloseButton() {
         try {
             Image closeImg = ImageIO.read(new File("resources/close.png"))
-                    .getScaledInstance(Tab.SIZE, Tab.SIZE, Image.SCALE_SMOOTH);
+                    .getScaledInstance(TabHeader.SIZE, TabHeader.SIZE, Image.SCALE_SMOOTH);
 
             JButton closeBtn = new JButton(new ImageIcon(closeImg));
 
-            closeBtn.setPreferredSize(new Dimension(Tab.SIZE, Tab.SIZE));
+            closeBtn.setPreferredSize(new Dimension(TabHeader.SIZE, TabHeader.SIZE));
             closeBtn.addActionListener(new CloseButtonAction());
             closeBtn.setContentAreaFilled(false);
             closeBtn.setBorderPainted(false);
@@ -74,9 +74,9 @@ class Tab extends JPanel {
     final private class CloseButtonAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-            int index = Tab.this.parentPane.indexOfTabComponent(Tab.this);
+            int index = TabHeader.this.parentPane.indexOfTabComponent(TabHeader.this);
             if (index >= 0) {
-                Tab.this.parentPane.removeTabAt(index);
+                TabHeader.this.parentPane.removeTabAt(index);
             }
         }
     }

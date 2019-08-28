@@ -1,13 +1,21 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.text.PlainDocument;
 
-public class TextArea extends JScrollPane {
+public class TabTextArea extends JScrollPane {
 
-    final JTextField textField;
+    private final JTextArea textArea = new JTextArea();
+    private final PlainDocument doc = new PlainDocument();
 
-    TextArea() {
-        this.textField = new JTextField();
+    TabTextArea() {
+        super();
 
+        this.textArea.setLineWrap(true);
+        this.textArea.setWrapStyleWord(true);
+        this.textArea.setDocument(doc);
+
+
+        this.setViewportView(this.textArea);
     }
 }
