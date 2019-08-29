@@ -1,9 +1,11 @@
 package gui;
 
+import core.FileInfo;
+
 import javax.swing.*;
 import java.awt.*;
 
-class Tabs extends JComponent {
+public class Tabs extends JComponent {
 
     private final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.LEFT);
 
@@ -17,13 +19,13 @@ class Tabs extends JComponent {
 
         this.tabbedPane.setTabPlacement(JTabbedPane.TOP);
         this.tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-
-        addNewTab("/doc/tree/project");
-        addNewTab("/add/swap/gen");
     }
 
-    private void addNewTab(String tabName) {
-        this.tabbedPane.addTab(tabName, new JPanel());
-        this.tabbedPane.setTabComponentAt(this.tabbedPane.indexOfTab(tabName), new TabHeader(tabName, this.tabbedPane));
+    public void addNewTab(FileInfo fileInfo) {
+        String fileName = fileInfo.getFileName();
+        TabTextArea tabTextArea = new TabTextArea(fileInfo);
+
+        this.tabbedPane.addTab(fileName, tabTextArea);
+        this.tabbedPane.setTabComponentAt(this.tabbedPane.indexOfTab(fileName), new TabHeader(fileName, this.tabbedPane));
     }
 }
