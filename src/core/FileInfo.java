@@ -7,12 +7,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.*;
 
 public class FileInfo {
 
     private static final int CHUNK_SIZE = 1024 * 256;
-    private int actualChunk;
-    private volatile int chunkLimit = -1;
+
+    private final int upperBound = 0;
+    private int lowerBound = -1;
+    private TreeSet<Integer> cachedChunks = new TreeSet<>();
+
     private volatile boolean loading;
 
     private Core core;
@@ -32,8 +36,10 @@ public class FileInfo {
         loading = true;
 
         try {
-            String str = loadChunk(0);
+
+            String str = loadChunk(upperBound);
             doc.insertString(0, str, null);
+
         } catch (IOException | BadLocationException e) {
             e.printStackTrace();
         } finally {
@@ -41,18 +47,19 @@ public class FileInfo {
         }
     }
 
-    public void loadPrevChunk() {
-        if (actualChunk - 1 >= 0) {
+    public void loadUpperChunk() {
+        if (!cachedChunks.contains(upperBound)) {
 
             loading = true;
 
             core.submitTask(() -> {
                 try {
-                    clearLowerChunk();
-                    String str = loadChunk(--actualChunk);
+
+                    removeLowerChunk();
+                    String str = loadChunk(cachedChunks.first() - 1);
                     doc.insertString(0, str, null);
 
-                } catch (BadLocationException | IOException e) {
+                } catch (IOException | BadLocationException e) {
                     e.printStackTrace();
                 } finally {
                     loading = false;
@@ -61,22 +68,18 @@ public class FileInfo {
         }
     }
 
-    public void loadNextChunk() {
-        if (actualChunk != chunkLimit) {
+    public void loadLowerChunk() {
+        if (!cachedChunks.contains(lowerBound)) {
 
             loading = true;
 
             core.submitTask(() -> {
                 try {
-                    clearUpperChunk();
-                    String str = loadChunk(actualChunk + 1);
 
-                    if (str.length() != 0) {
-                        actualChunk++;
+                    removeUpperChunk();
+                    String str = loadChunk(cachedChunks.last() + 1);
+                    doc.insertString(doc.getLength(), str, null);
 
-                        int endPos = doc.getLength();
-                        doc.insertString(endPos, str, null);
-                    }
                 } catch (BadLocationException | IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -88,6 +91,7 @@ public class FileInfo {
 
     private String loadChunk(int chunk) throws IOException {
 
+        cachedChunks.add(chunk);
         char[] charBuf = new char[CHUNK_SIZE];
 
         try (BufferedReader reader =
@@ -97,11 +101,7 @@ public class FileInfo {
             int count = reader.read(charBuf);
 
             if (count < CHUNK_SIZE) {
-                if (count <= 1) {
-                    chunkLimit = chunk - 1;
-                    return "";
-                }
-                chunkLimit = chunk;
+                lowerBound = chunk;
                 return new String(charBuf, 0, count);
             }
         }
@@ -109,18 +109,16 @@ public class FileInfo {
         return new String(charBuf);
     }
 
-    private void clearUpperChunk() throws BadLocationException {
-        System.out.println(doc.getLength());
-        if (actualChunk != 0) {
+    private void removeUpperChunk() throws BadLocationException {
+        if (!cachedChunks.last().equals(upperBound)) {
+            cachedChunks.remove(cachedChunks.first());
             doc.remove(0, CHUNK_SIZE);
         }
     }
 
-    private void clearLowerChunk() throws BadLocationException {
-        System.out.println(doc.getLength());
-        if (actualChunk != chunkLimit) {
-            doc.remove(CHUNK_SIZE, doc.getLength() - CHUNK_SIZE);
-        }
+    private void removeLowerChunk() throws BadLocationException {
+        cachedChunks.remove(cachedChunks.last());
+        doc.remove(CHUNK_SIZE, doc.getLength() - CHUNK_SIZE);
     }
 
     public boolean isLoading() {
