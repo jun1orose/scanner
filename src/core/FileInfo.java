@@ -11,7 +11,7 @@ import java.util.*;
 
 public class FileInfo {
 
-    private static final int CHUNK_SIZE = 1024 * 256;
+    private static final int CHUNK_SIZE = 1024 * 32;
 
     private final int upperBound = 0;
     private int lowerBound = -1;
