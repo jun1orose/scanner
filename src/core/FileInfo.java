@@ -130,6 +130,6 @@ public class FileInfo {
     }
 
     public String getFileName() {
-        return filePath.toString();
+        return filePath.getFileName().toString();
     }
 }

@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SyncTreeNode extends DefaultMutableTreeNode {
+class SyncTreeNode extends DefaultMutableTreeNode {
 
     private ReentrantLock lock = new ReentrantLock();
 
@@ -14,7 +14,7 @@ public class SyncTreeNode extends DefaultMutableTreeNode {
         super(fileName);
     }
 
-    public SyncTreeNode getChildByPath(Path filePath) {
+    SyncTreeNode getChildByPath(Path filePath) {
         try {
             lock.lock();
 
