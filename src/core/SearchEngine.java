@@ -16,30 +16,31 @@ public class SearchEngine {
     private Core core;
     private Path filePath;
 
-    private long currentMatch;
+    private int currentMatch;
     private List<Long> matchIndexes = Collections.synchronizedList(new ArrayList<>());
 
-    private Future<?> searchTask;
+    private Future searchTask;
 
     private char[] pattern;
     private int[] shift;
 
 
-    
-    private SearchEngine(Path filePath, long firstMatch, char[] pattern, int[] shift) {
+
+    private SearchEngine(Core core, Path filePath, long firstMatch, char[] pattern, int[] shift) {
+        this.core = core;
         this.filePath = filePath;
         this.matchIndexes.add(firstMatch);
         this.pattern = pattern;
         this.shift = shift;
     }
 
-    public static SearchEngine construct(Path filePath, char[] pattern) {
+    static SearchEngine construct(Core core, Path filePath, char[] pattern) {
 
         int[] shift = calculateShift(pattern);
         long index = indexOfFirstMatch(filePath, pattern, shift);
 
         if (index != -1) {
-            return new SearchEngine(filePath, index, pattern, shift);
+            return new SearchEngine(core, filePath, index, pattern, shift);
         }
 
         return null;
@@ -62,7 +63,7 @@ public class SearchEngine {
 
                 if (pattern[k] == chr) {
                     if (++k == pattern.length) {
-                        return i + 1 - k;
+                        return i + 1L - k;
                     }
                 } else {
                     k = 0;
@@ -99,5 +100,45 @@ public class SearchEngine {
         }
 
         return shift;
+    }
+
+    public void fullSearch() {
+        searchTask = core.submitTask(() -> {
+
+            try (BufferedReader reader =
+                         new BufferedReader(new FileReader(filePath.toString(), StandardCharsets.UTF_8))) {
+
+                int k = 0;
+                long i = matchIndexes.get(currentMatch);
+                int chr;
+
+                reader.skip(i + 1);
+
+                while (!Thread.currentThread().isInterrupted() && (chr = reader.read()) > 0) {
+
+                    while (pattern[k] != chr && k > 0) {
+                        k = shift[k - 1];
+                    }
+
+                    if (pattern[k] == chr) {
+                        if (++k == pattern.length) {
+                            matchIndexes.add(i + 1L - k);
+                            k = shift[k - 1];
+                        }
+                    } else {
+                        k = 0;
+                    }
+
+                    i++;
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void stopSearch() {
+        searchTask.cancel(true);
     }
 }
