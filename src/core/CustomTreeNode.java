@@ -10,4 +10,8 @@ class CustomTreeNode extends DefaultMutableTreeNode {
     CustomTreeNode(Path filePath) {
         super(filePath.getFileName().toString());
     }
+
+    Path getFilePath() {
+        return filePath;
+    }
 }
