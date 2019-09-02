@@ -14,16 +14,15 @@ class FileTree extends JScrollPane {
     private Core core;
     private JTree fileTree;
 
-    FileTree(Core core) {
+    FileTree(Core core, JTree fileTree) {
         super();
 
         this.core = core;
-        fileTree = new JTree(core.getTreeModel());
+        this.fileTree = fileTree;
         addLoadingFileByDoubleClick();
 
         setViewportView(fileTree);
         setOpaque(true);
-
     }
 
     private void addLoadingFileByDoubleClick() {
