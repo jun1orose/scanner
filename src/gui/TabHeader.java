@@ -3,6 +3,8 @@ package gui;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,22 +17,25 @@ class TabHeader extends JPanel {
 
     private String tabName;
     private JTabbedPane parentPane;
+    private Tabs tabs;
 
     private static final int SIZE = 20;
     private static final Font FONT = new Font("Times New Roman", Font.PLAIN, TabHeader.SIZE * 2 / 3);
 
 
-    TabHeader(String tabName, JTabbedPane parentPane) {
+    TabHeader(String tabName, JTabbedPane parentPane, Tabs tabs) {
         super(new BorderLayout());
 
         this.tabName = tabName;
         this.parentPane = parentPane;
+        this.tabs = tabs;
 
         setOpaque(false);
         setPreferredSize(new Dimension(TabHeader.SIZE * 6, TabHeader.SIZE));
 
         addTitle();
         addCloseButton();
+        parentPane.addChangeListener(new ChangeTabListener());
     }
 
     private void addTitle() {
@@ -74,9 +79,23 @@ class TabHeader extends JPanel {
     final private class CloseButtonAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-            int index = TabHeader.this.parentPane.indexOfTabComponent(TabHeader.this);
+            int index = parentPane.indexOfTabComponent(TabHeader.this);
             if (index >= 0) {
-                TabHeader.this.parentPane.removeTabAt(index);
+                parentPane.removeTabAt(index);
+                tabs.removeTab(tabName);
+            }
+        }
+    }
+
+    final private class ChangeTabListener implements ChangeListener {
+        @Override
+        public void stateChanged(ChangeEvent changeEvent) {
+            int newTab = parentPane.getSelectedIndex();
+            int thisTab = parentPane.indexOfTabComponent(TabHeader.this);
+
+            if (newTab != -1 && thisTab != -1 && newTab != thisTab) {
+                ((TabTextArea) parentPane.getComponentAt(thisTab)).stopSearch();
+                ((TabTextArea) parentPane.getComponentAt(newTab)).startSearch();
             }
         }
     }
