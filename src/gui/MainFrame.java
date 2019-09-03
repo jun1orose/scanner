@@ -26,7 +26,7 @@ public class MainFrame extends JFrame {
 
         tree.setModel(null);
         JPanel leftPanel = new JPanel(new BorderLayout());
-        SearchPanel searchPanel = new SearchPanel(core);
+        SearchPanel searchPanel = new SearchPanel(core, tabs);
         FileTree fileTree = new FileTree(core, tree);
 
         leftPanel.add(searchPanel, BorderLayout.NORTH);
