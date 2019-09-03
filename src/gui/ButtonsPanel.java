@@ -8,7 +8,10 @@ import java.io.IOException;
 
 class ButtonsPanel extends JPanel {
 
-    ButtonsPanel() {
+    private JTabbedPane tabs;
+
+    ButtonsPanel(JTabbedPane tabs) {
+        this.tabs = tabs;
         this.setLayout(new FlowLayout(FlowLayout.LEFT));
         addNavigationButtons();
     }
@@ -33,7 +36,11 @@ class ButtonsPanel extends JPanel {
                 .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
 
         JButton upBtn = new JButton(new ImageIcon(upImg));
-        upBtn.setEnabled(false);
+        upBtn.addActionListener(actionEvent -> {
+            if (tabs.getSelectedComponent() != null) {
+                ((TabTextArea) tabs.getSelectedComponent()).toPrevMatch();
+            }
+        });
 
         return upBtn;
     }
@@ -43,7 +50,11 @@ class ButtonsPanel extends JPanel {
                 .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
 
         JButton downBtn = new JButton(new ImageIcon(downImg));
-        downBtn.setEnabled(false);
+        downBtn.addActionListener(actionEvent -> {
+            if (tabs.getSelectedComponent() != null) {
+                ((TabTextArea) tabs.getSelectedComponent()).toNextMatch();
+            }
+        });
 
         return downBtn;
     }
