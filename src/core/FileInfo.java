@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class FileInfo {
 
@@ -18,6 +20,7 @@ public class FileInfo {
     private TreeSet<Integer> cachedChunks = new TreeSet<>();
 
     private volatile boolean loading;
+    private Future executingTask;
 
     private Core core;
     private Path filePath;
@@ -47,14 +50,46 @@ public class FileInfo {
         }
     }
 
+    public int rollToMatchAndGetActualPos(long match) {
+        int chunk = (int) (match / CHUNK_SIZE);
+        int actualPos = (int) (match - CHUNK_SIZE * chunk);
+
+        if (chunk <= cachedChunks.first()) {
+            while (chunk < cachedChunks.first()) {
+                if (!isLoading()) {
+                    loadUpperChunk();
+                }
+            }
+        }
+
+        if (chunk >= cachedChunks.last()) {
+            while (chunk > cachedChunks.last()) {
+                if (!isLoading()) {
+                    loadLowerChunk();
+                }
+            }
+            actualPos = (int) (match - CHUNK_SIZE * (chunk - 1 < 0 ? chunk : chunk -1));
+        }
+
+        try {
+            if (executingTask != null) {
+                executingTask.get();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return actualPos;
+    }
+
     public void loadUpperChunk() {
         if (!cachedChunks.contains(upperBound)) {
 
             loading = true;
 
-            core.submitTask(() -> {
-                try {
+            executingTask = core.submitTask(() -> {
 
+                try {
                     removeLowerChunk();
                     String str = loadChunk(cachedChunks.first() - 1);
                     doc.insertString(0, str, null);
@@ -73,9 +108,9 @@ public class FileInfo {
 
             loading = true;
 
-            core.submitTask(() -> {
-                try {
+            executingTask = core.submitTask(() -> {
 
+                try {
                     removeUpperChunk();
                     String str = loadChunk(cachedChunks.last() + 1);
                     doc.insertString(doc.getLength(), str, null);
