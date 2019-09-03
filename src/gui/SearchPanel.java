@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 class SearchPanel extends JPanel {
 
     private Core core;
+    private Tabs tabs;
 
     private JTextField searchFilePath;
     private JTextField searchFileExt;
@@ -19,9 +20,12 @@ class SearchPanel extends JPanel {
     private final String defaultExt = ".log";
     private final String defaultFilePath = FileSystemView.getFileSystemView().getHomeDirectory().toPath().toString();
 
-    SearchPanel(Core core) {
+    SearchPanel(Core core, Tabs tabs) {
         super();
         this.core = core;
+        this.tabs = tabs;
+        this.setBorder(BorderFactory.createRaisedSoftBevelBorder());
+
         createFields();
         addEnterKeyListeners();
     }
@@ -71,11 +75,13 @@ class SearchPanel extends JPanel {
                     if (searchPattern.getText().length() != 0) {
                         if (searchFileExt.getText().length() == 0) {
                             searchFileExt.setText(defaultExt);
+                            
                             if (searchFilePath.getText().length() == 0) {
                                 searchFilePath.setText(defaultFilePath);
                             }
                         }
 
+                        tabs.removeAllTabs();
                         core.doSearch(searchPattern.getText().toCharArray(),
                                 Paths.get(searchFilePath.getText()), searchFileExt.getText());
                     }
