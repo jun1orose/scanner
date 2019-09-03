@@ -1,7 +1,6 @@
 package core;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,14 +15,14 @@ public class SearchEngine {
     private Core core;
     private Path filePath;
 
-    private int currentMatch;
+    private int currentMatch = -1;
     private List<Long> matchIndexes = Collections.synchronizedList(new ArrayList<>());
 
     private Future searchTask;
+    private volatile boolean searchFinished;
 
     private char[] pattern;
     private int[] shift;
-
 
 
     private SearchEngine(Core core, Path filePath, long firstMatch, char[] pattern, int[] shift) {
@@ -102,43 +101,68 @@ public class SearchEngine {
         return shift;
     }
 
+    public long getPrevMatch() {
+        int prevMatch = currentMatch - 1;
+        if (prevMatch > -1) {
+            currentMatch = prevMatch;
+        }
+        return matchIndexes.get(currentMatch);
+    }
+
+    public long getNextMatch() {
+        int nextMatch = currentMatch + 1;
+        if (nextMatch < matchIndexes.size()) {
+            currentMatch = nextMatch;
+        }
+        return matchIndexes.get(currentMatch);
+    }
+
     public void fullSearch() {
-        searchTask = core.submitTask(() -> {
 
-            try (BufferedReader reader =
-                         new BufferedReader(new FileReader(filePath.toString(), StandardCharsets.UTF_8))) {
+        if (!searchFinished) {
+            searchTask = core.submitTask(() -> {
 
-                int k = 0;
-                long i = matchIndexes.get(currentMatch);
-                int chr;
+                try (BufferedReader reader =
+                             new BufferedReader(new FileReader(filePath.toString(), StandardCharsets.UTF_8))) {
 
-                reader.skip(i + 1);
+                    int k = 0;
+                    long i = matchIndexes.get(matchIndexes.size() - 1) + 1;
+                    int chr;
 
-                while (!Thread.currentThread().isInterrupted() && (chr = reader.read()) > 0) {
+                    reader.skip(i);
 
-                    while (pattern[k] != chr && k > 0) {
-                        k = shift[k - 1];
-                    }
+                    while (!Thread.currentThread().isInterrupted() && (chr = reader.read()) > 0) {
 
-                    if (pattern[k] == chr) {
-                        if (++k == pattern.length) {
-                            matchIndexes.add(i + 1L - k);
+                        while (pattern[k] != chr && k > 0) {
                             k = shift[k - 1];
                         }
-                    } else {
-                        k = 0;
+
+                        if (pattern[k] == chr) {
+                            if (++k == pattern.length) {
+                                matchIndexes.add(i + 1L - k);
+                                k = shift[k - 1];
+                            }
+                        } else {
+                            k = 0;
+                        }
+
+                        i++;
                     }
 
-                    i++;
-                }
+                    searchFinished = true;
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 
     public void stopSearch() {
         searchTask.cancel(true);
+    }
+
+    public int getPatternLength() {
+        return pattern.length;
     }
 }
