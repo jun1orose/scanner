@@ -1,31 +1,62 @@
 package gui;
 
 import core.FileInfo;
+import core.SearchEngine;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ContainerAdapter;
+import java.awt.event.ContainerEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Tabs extends JComponent {
 
     private final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.LEFT);
+    private List<String> openedTabs = new ArrayList<>();
 
     Tabs() {
         super();
-        this.setBorder(BorderFactory.createRaisedSoftBevelBorder());
-        this.setLayout(new BorderLayout());
+        setBorder(BorderFactory.createRaisedSoftBevelBorder());
+        setLayout(new BorderLayout());
 
-        this.add(new ButtonsPanel(), BorderLayout.NORTH);
-        this.add(this.tabbedPane, BorderLayout.CENTER);
+        add(new ButtonsPanel(tabbedPane), BorderLayout.NORTH);
+        add(tabbedPane, BorderLayout.CENTER);
 
-        this.tabbedPane.setTabPlacement(JTabbedPane.TOP);
-        this.tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        tabbedPane.setTabPlacement(JTabbedPane.TOP);
+        tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+
+        setTabRemovingListener();
     }
 
-    public void addNewTab(FileInfo fileInfo) {
+    public void addNewTab(FileInfo fileInfo, SearchEngine searchEngine) {
         String fileName = fileInfo.getFileName();
-        TabTextArea tabTextArea = new TabTextArea(fileInfo);
 
-        this.tabbedPane.addTab(fileName, tabTextArea);
-        this.tabbedPane.setTabComponentAt(this.tabbedPane.indexOfTab(fileName), new TabHeader(fileName, this.tabbedPane));
+        if (!openedTabs.contains(fileName)) {
+            openedTabs.add(fileName);
+            TabTextArea tabTextArea = new TabTextArea(fileInfo, searchEngine);
+
+            tabbedPane.addTab(fileName, tabTextArea);
+            tabbedPane.setTabComponentAt(tabbedPane.indexOfTab(fileName),
+                    new TabHeader(fileName, tabbedPane, this));
+        }
+    }
+
+    void removeTab(String tab) {
+        openedTabs.remove(tab);
+    }
+
+    void removeAllTabs() {
+        openedTabs.clear();
+        tabbedPane.removeAll();
+    }
+
+    private void setTabRemovingListener() {
+        tabbedPane.addContainerListener(new ContainerAdapter() {
+            @Override
+            public void componentRemoved(ContainerEvent e) {
+                ((TabTextArea) e.getChild()).stopSearch();
+            }
+        });
     }
 }
